@@ -19,6 +19,9 @@ module.exports.getUsers = (req, res) => {
 module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
     .then((user) => {
+      if (!user) {
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь не найден' });
+      }
       const {
         _id, name, about, avatar,
       } = user;
@@ -28,7 +31,7 @@ module.exports.getUserById = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(ERROR_CODE_NOT_FOUND).send({ message: err.message });
+        res.status(ERROR_CODE_VALIDATION).send({ message: err.message });
       } else {
         res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
       }

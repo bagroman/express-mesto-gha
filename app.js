@@ -17,15 +17,11 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/users', require('./routes/users'));
-app.get('/users/:userId', require('./routes/users'));
-app.post('/users', require('./routes/users'));
-app.get('/cards', require('./routes/cards'));
-app.post('/cards', require('./routes/cards'));
-app.delete('/cards/:userId', require('./routes/cards'));
-app.patch('/users/me', require('./routes/users'));
-app.patch('/users/me/avatar', require('./routes/users'));
-app.put('/cards/:cardId/likes', require('./routes/cards'));
-app.delete('/cards/:cardId/likes', require('./routes/cards'));
+app.use('/users', require('./routes/users'));
+app.use('/cards', require('./routes/cards'));
+
+app.use('*', (req, res) => {
+  res.status(404).send({ message: 'Указан неправильный путь' });
+});
 
 app.listen(PORT, () => {});

@@ -33,10 +33,15 @@ module.exports.getCards = (req, res) => {
 
 module.exports.deleteCardById = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .then(() => res.send({ message: 'Карточка была успешно удалена' }))
+    .then((card) => {
+      if (!card) {
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Карточка не найдена' });
+      }
+      res.send({ message: 'Карточка была успешно удалена' });
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(ERROR_CODE_NOT_FOUND).send({ message: err.message });
+        res.status(ERROR_CODE_VALIDATION).send({ message: err.message });
       } else {
         res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
       }
@@ -45,12 +50,15 @@ module.exports.deleteCardById = (req, res) => {
 
 module.exports.likeCard = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: 'true', runValidators: 'true' })
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Карточка не найдена' });
+      }
+      res.send(card);
+    })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         res.status(ERROR_CODE_VALIDATION).send({ message: err.message });
-      } else if (err.name === 'CastError') {
-        res.status(ERROR_CODE_NOT_FOUND).send({ message: err.message });
       } else {
         res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
       }
@@ -59,12 +67,15 @@ module.exports.likeCard = (req, res) => {
 
 module.exports.dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: 'true', runValidators: 'true' })
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Карточка не найдена' });
+      }
+      res.send(card);
+    })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         res.status(ERROR_CODE_VALIDATION).send({ message: err.message });
-      } else if (err.name === 'CastError') {
-        res.status(ERROR_CODE_NOT_FOUND).send({ message: err.message });
       } else {
         res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
       }

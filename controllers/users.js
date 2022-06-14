@@ -1,18 +1,11 @@
 const User = require('../models/user');
 const {
   ERROR_CODE_VALIDATION, ERROR_CODE_NOT_FOUND, ERROR_CODE_DEFAULT,
-} = require('../errors/errors');
+} = require('../errors/error-codes');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
-    .then((users) => res.send(users.map((user) => {
-      const {
-        _id, name, about, avatar,
-      } = user;
-      return {
-        _id, name, about, avatar,
-      };
-    })))
+    .then((users) => res.send(users))
     .catch((err) => res.status(ERROR_CODE_DEFAULT).send({ message: err.message }));
 };
 
@@ -21,20 +14,16 @@ module.exports.getUserById = (req, res) => {
     .then((user) => {
       if (!user) {
         res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь не найден' });
+        return;
       }
-      const {
-        _id, name, about, avatar,
-      } = user;
-      res.send({
-        _id, name, about, avatar,
-      });
+      res.send(user);
     })
     .catch((err) => {
+      let responseStatus = ERROR_CODE_DEFAULT;
       if (err.name === 'CastError') {
-        res.status(ERROR_CODE_VALIDATION).send({ message: err.message });
-      } else {
-        res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
+        responseStatus = ERROR_CODE_VALIDATION;
       }
+      res.status(responseStatus).send({ message: err.message });
     });
 };
 
@@ -42,13 +31,13 @@ module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar })
-    .then((user) => res.send(user))
+    .then((user) => res.status(201).send(user))
     .catch((err) => {
+      let responseStatus = ERROR_CODE_DEFAULT;
       if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE_VALIDATION).send({ message: err.message });
-      } else {
-        res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
+        responseStatus = ERROR_CODE_VALIDATION;
       }
+      res.status(responseStatus).send({ message: err.message });
     });
 };
 
@@ -56,15 +45,19 @@ module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: 'true', runValidators: 'true' })
-    .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE_VALIDATION).send({ message: err.message });
-      } else if (err.name === 'CastError') {
-        res.status(ERROR_CODE_NOT_FOUND).send({ message: err.message });
-      } else {
-        res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
+    .then((user) => {
+      if (!user) {
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь не найден' });
+        return;
       }
+      res.send(user);
+    })
+    .catch((err) => {
+      let responseStatus = ERROR_CODE_DEFAULT;
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
+        responseStatus = ERROR_CODE_VALIDATION;
+      }
+      res.status(responseStatus).send({ message: err.message });
     });
 };
 
@@ -72,14 +65,18 @@ module.exports.updateAvatar = (req, res) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: 'true', runValidators: 'true' })
-    .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE_VALIDATION).send({ message: err.message });
-      } else if (err.name === 'CastError') {
-        res.status(ERROR_CODE_NOT_FOUND).send({ message: err.message });
-      } else {
-        res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
+    .then((user) => {
+      if (!user) {
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь не найден' });
+        return;
       }
+      res.send(user);
+    })
+    .catch((err) => {
+      let responseStatus = ERROR_CODE_DEFAULT;
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
+        responseStatus = ERROR_CODE_VALIDATION;
+      }
+      res.status(responseStatus).send({ message: err.message });
     });
 };

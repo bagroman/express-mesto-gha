@@ -50,6 +50,7 @@ module.exports.createUser = (req, res, next) => {
       name, about, avatar, email, password: hash,
     }))
     .then((user) => {
+      // eslint-disable-next-line no-underscore-dangle
       const { password, ...responseUser } = user._doc;
       const userWithoutPassword = responseUser;
       res.status(201).send(userWithoutPassword);

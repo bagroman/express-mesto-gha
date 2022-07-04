@@ -5,6 +5,7 @@ const { errors, celebrate, Joi } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const DefaultError = require('./errors/defaultError');
+const NotFoundError = require('./errors/notFoundError');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -30,11 +31,12 @@ app.post('/signup', celebrate({
   }),
 }), createUser);
 
-app.use('/users', auth, require('./routes/users'));
-app.use('/cards', auth, require('./routes/cards'));
+app.use(auth);
+app.use('/users', require('./routes/users'));
+app.use('/cards', require('./routes/cards'));
 
-app.use((req, res) => {
-  res.status(404).send({ message: 'Указан неправильный путь' });
+app.use((req, res, next) => {
+  next(new NotFoundError('Указан неправильный путь'));
 });
 
 app.use(errors());

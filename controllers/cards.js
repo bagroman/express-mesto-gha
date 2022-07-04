@@ -33,8 +33,8 @@ module.exports.deleteCardById = (req, res, next) => {
       if (String(req.user._id) !== String(card.owner)) {
         throw new ForbiddenError('Недостаточно прав');
       }
-      card.remove();
-      res.send({ message: 'Карточка была успешно удалена' });
+      return card.remove()
+        .then(() => res.send({ message: 'Карточка была успешно удалена' }));
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -46,7 +46,7 @@ module.exports.deleteCardById = (req, res, next) => {
 };
 
 module.exports.likeCard = (req, res, next) => {
-  Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: 'true' })
+  Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка не найдена');
@@ -63,7 +63,7 @@ module.exports.likeCard = (req, res, next) => {
 };
 
 module.exports.dislikeCard = (req, res, next) => {
-  Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: 'true' })
+  Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка не найдена');
